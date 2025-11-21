@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320">
+  <defs>
+    <linearGradient id="g3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="320" fill="url(#g3)"/>
+  <g opacity="0.2">
+    <circle cx="260" cy="120" r="56" fill="#fff"/>
+    <circle cx="390" cy="200" r="32" fill="#fff"/>
+    <circle cx="520" cy="140" r="48" fill="#fff"/>
+  </g>
+  <text x="60" y="120" font-size="54" font-family="Inter, Arial" fill="#fff" font-weight="700">Festival de Sushi</text>
+  <text x="60" y="170" font-size="24" font-family="Inter, Arial" fill="#fff" opacity="0.9">Combos especiais a partir de R$ 49,90</text>
+</svg>
