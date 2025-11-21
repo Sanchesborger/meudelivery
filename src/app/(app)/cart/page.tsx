@@ -195,14 +195,15 @@ export default function CartPage() {
             </div>
 
             {/* Fixed Checkout Button */}
-            <div className="fixed bottom-20 left-0 right-0 z-40 bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800 p-4 safe-bottom">
-                <Button
-                    fullWidth
-                    size="lg"
-                    onClick={() => (window.location.href = "/checkout")}
-                >
-                    Finalizar pedido • {formatCurrency(total)}
-                </Button>
+            <div className="fixed bottom-20 left-0 right-0 z-40 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl border-t border-neutral-200 dark:border-neutral-800 shadow-[0_-4px_16px_rgba(0,0,0,0.1)] dark:shadow-[0_-4px_16px_rgba(0,0,0,0.3)]">
+                <div className="container mx-auto px-4 py-4 safe-bottom">
+                    <button
+                        onClick={() => (window.location.href = "/checkout")}
+                        className="w-full h-14 rounded-xl font-semibold text-lg text-white bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 shadow-lg hover:shadow-xl transition-all duration-200"
+                    >
+                        Finalizar pedido • {formatCurrency(total)}
+                    </button>
+                </div>
             </div>
         </div>
     );

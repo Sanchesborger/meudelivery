@@ -277,60 +277,57 @@ export default function HomePage() {
                 {/* Restaurants */}
                 <section>
                     <h3 className="text-lg font-semibold font-heading mb-4">
-                        Restaurantes próximos
+                        O que vai Pedir Hoje?
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="flex flex-col gap-4">
                         {filteredRestaurants.map((restaurant) => (
                             <div
                                 key={restaurant.id}
-                                className="rounded-xl overflow-hidden border-2 border-neutral-200 dark:border-neutral-800 hover:shadow-xl transition-all cursor-pointer bg-white dark:bg-neutral-900"
+                                className="flex gap-4 p-3 rounded-xl border border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:shadow-md transition-all cursor-pointer"
                                 onClick={() => router.push(`/restaurant/${restaurant.id}`)}
                             >
                                 {/* Cover Image */}
-                                <div className="relative h-32 w-full bg-gradient-to-br from-primary-400 to-primary-600">
+                                <div className="relative h-24 w-24 shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-primary-400 to-primary-600">
                                     {!restaurant.isOpen && (
                                         <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                                            <Badge variant="error">Fechado</Badge>
+                                            <Badge variant="error" className="text-[10px] px-1.5 py-0.5">Fechado</Badge>
                                         </div>
                                     )}
                                 </div>
 
                                 {/* Content */}
-                                <div className="p-4 space-y-2">
-                                    <div className="flex items-start justify-between">
-                                        <h3 className="font-semibold font-heading text-base">
-                                            {restaurant.name}
-                                        </h3>
-                                    </div>
-                                    <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                                        {restaurant.description}
-                                    </p>
+                                <div className="flex flex-1 flex-col justify-between py-0.5">
+                                    <div className="space-y-1">
+                                        <div className="flex justify-between items-start">
+                                            <h3 className="font-semibold font-heading text-base line-clamp-1">
+                                                {restaurant.name}
+                                            </h3>
+                                            <div className="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded text-xs font-medium text-green-700 dark:text-green-400">
+                                                <span className="text-[10px]">{restaurant.rating}</span>
+                                                <Star className="h-3 w-3 fill-current" />
+                                            </div>
+                                        </div>
 
-                                    {/* Stats */}
-                                    <div className="flex flex-wrap items-center gap-3 text-sm">
-                                        <div className="flex items-center gap-1 text-secondary-600">
-                                            <Star className="h-4 w-4 fill-current" />
-                                            <span className="font-medium">{restaurant.rating}</span>
-                                        </div>
-                                        <div className="flex items-center gap-1 text-neutral-600 dark:text-neutral-400">
-                                            <Clock className="h-4 w-4" />
-                                            <span>{restaurant.deliveryTime} min</span>
-                                        </div>
-                                        <div className="flex items-center gap-1 text-neutral-600 dark:text-neutral-400">
-                                            <MapPinned className="h-4 w-4" />
-                                            <span>{restaurant.distance} km</span>
-                                        </div>
-                                        <div className="flex items-center gap-1 text-accent-600">
-                                            <DollarSign className="h-4 w-4" />
-                                            <span className="font-medium">{formatCurrency(restaurant.deliveryFee)}</span>
-                                        </div>
+                                        <p className="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-1">
+                                            {restaurant.description}
+                                        </p>
                                     </div>
 
-                                    {/* Category Tag */}
-                                    <div className="flex gap-2">
-                                        <span className="inline-flex items-center rounded-full bg-neutral-100 dark:bg-neutral-800 px-2.5 py-1 text-xs font-medium text-neutral-700 dark:text-neutral-300">
-                                            {categories.find(c => c.id === restaurant.category)?.name || restaurant.category}
-                                        </span>
+                                    <div className="flex items-center justify-between mt-2">
+                                        <div className="flex items-center gap-3 text-xs text-neutral-500">
+                                            <div className="flex items-center gap-1">
+                                                <Clock className="h-3 w-3" />
+                                                <span>{restaurant.deliveryTime} min</span>
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                <Bike className="h-3 w-3" />
+                                                <span>{formatCurrency(restaurant.deliveryFee)}</span>
+                                            </div>
+                                        </div>
+
+                                        <button className="text-xs font-medium text-primary-600 bg-primary-50 dark:bg-primary-900/20 px-3 py-1.5 rounded-lg hover:bg-primary-100 transition-colors">
+                                            VER
+                                        </button>
                                     </div>
                                 </div>
                             </div>

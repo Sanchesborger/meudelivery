@@ -1,58 +1,62 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { X, Plus, Minus, ShoppingCart } from "lucide-react";
-import { Modal } from "@/components/ui/modal";
-import { Button } from "@/components/ui/button";
+import { Plus, Minus, ShoppingCart } from "lucide-react";
+import { Header } from "@/components/ui/header";
 import { Badge } from "@/components/ui/badge";
 import { Divider } from "@/components/ui/divider";
-import { ProductExtrasGroup, ExtraGroupData } from "./product-extras-group";
-import { formatCurrency } from "@/lib/utils";
-import { cn } from "@/lib/utils";
-import type { MenuItem } from "@/types";
+import { ProductExtrasGroup } from "@/components/restaurant/product-extras-group";
+import { useCart } from "@/hooks/use-cart";
+import { formatCurrency, cn } from "@/lib/utils";
+import { PRODUCT_SIZES } from "@/lib/constants";
+import { mockMenuItems, mockExtraGroups } from "@/lib/mock-data";
 
-interface ProductModalProps {
-    product: MenuItem | null;
-    open: boolean;
-    onClose: () => void;
-    onAddToCart: (item: {
-        product: MenuItem;
-        quantity: number;
-        selectedSize?: string;
-        selectedExtras: string[];
-        notes: string;
-    }) => void;
-    extraGroups?: ExtraGroupData[];
-    sizes?: { id: string; name: string; priceMultiplier: number }[];
-}
+export default function ProductPage() {
+    const params = useParams();
+    const router = useRouter();
+    const { addItem } = useCart();
 
-export function ProductModal({
-    product,
-    open,
-    onClose,
-    onAddToCart,
-    extraGroups = [],
-    sizes = [],
-}: ProductModalProps) {
+    const productId = params.productId as string;
+    const product = mockMenuItems.find(p => p.id === productId);
+
     const [quantity, setQuantity] = useState(1);
-    const [selectedSize, setSelectedSize] = useState<string>(sizes[0]?.id || "medium");
+    const [selectedSize, setSelectedSize] = useState<string>("medium");
     const [selectedExtrasByGroup, setSelectedExtrasByGroup] = useState<Record<string, string[]>>({});
     const [notes, setNotes] = useState("");
 
-    // Check if all required groups are satisfied
-    const canAddToCart = useMemo(() => {
-        return extraGroups
-            .filter((g) => g.required)
-            .every((g) => {
-                const selected = selectedExtrasByGroup[g.id] || [];
-                return selected.length >= g.minSelection && selected.length <= g.maxSelection;
-            });
-    }, [extraGroups, selectedExtrasByGroup]);
+    // Determine helpers
+    const sizes = useMemo(() => {
+        if (!product || product.category_id !== "pizzas") return [];
+        return PRODUCT_SIZES.map((size) => ({
+            id: size.id,
+            name: size.name,
+            priceMultiplier: size.multiplier,
+        }));
+    }, [product]);
 
-    if (!product) return null;
+    const extraGroups = useMemo(() => {
+        if (!product || product.category_id !== "pizzas") return [];
+        return mockExtraGroups;
+    }, [product]);
 
-    // Calculate total price
+    // Initialize size if needed
+    useMemo(() => {
+        if (sizes.length > 0 && !sizes.find(s => s.id === selectedSize)) {
+            setSelectedSize(sizes[0].id);
+        }
+    }, [sizes, selectedSize]);
+
+    if (!product) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <p>Produto não encontrado</p>
+            </div>
+        );
+    }
+
+    // Calculate totals
     const basePrice = product.price;
     const sizeMultiplier = sizes.find((s) => s.id === selectedSize)?.priceMultiplier || 1.0;
 
@@ -67,6 +71,7 @@ export function ProductModal({
     const itemPrice = (basePrice * sizeMultiplier) + extrasPrice;
     const totalPrice = itemPrice * quantity;
 
+    // Handlers
     const handleExtrasChange = (groupId: string, extraIds: string[]) => {
         setSelectedExtrasByGroup((prev) => ({
             ...prev,
@@ -75,54 +80,44 @@ export function ProductModal({
     };
 
     const handleAddToCart = () => {
-        onAddToCart({
-            product,
-            quantity,
-            selectedSize: sizes.length > 0 ? selectedSize : undefined,
-            selectedExtras: selectedExtrasFlat,
-            notes,
-        });
-        handleClose();
+        // In a real app, we would pass all options. 
+        // For now, the useCart hook is simple.
+        addItem(product, quantity, notes);
+        router.back();
     };
 
-    const handleClose = () => {
-        setQuantity(1);
-        setSelectedSize(sizes[0]?.id || "medium");
-        setSelectedExtrasByGroup({});
-        setNotes("");
-        onClose();
-    };
+    // Validation
+    const canAddToCart = extraGroups
+        .filter((g) => g.required)
+        .every((g) => {
+            const selected = selectedExtrasByGroup[g.id] || [];
+            return selected.length >= g.minSelection && selected.length <= g.maxSelection;
+        });
 
     return (
-        <Modal open={open} onClose={handleClose} title="" size="lg" showCloseButton={false}>
-            <div className="flex flex-col h-full max-h-[85vh]">
-                {/* Header with Image */}
-                <div className="relative">
-                    {product.image_url && (
-                        <div className="relative h-64 w-full bg-neutral-200 dark:bg-neutral-800">
-                            <Image
-                                src={product.image_url}
-                                alt={product.name}
-                                fill
-                                className="object-cover"
-                            />
-                        </div>
-                    )}
-                    {/* Close Button */}
-                    <button
-                        onClick={handleClose}
-                        className="absolute top-4 right-4 p-2 bg-white dark:bg-neutral-900 rounded-full shadow-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                    >
-                        <X className="h-5 w-5" />
-                    </button>
-                </div>
+        <div className="min-h-screen pb-32 bg-white dark:bg-neutral-950">
+            <Header title={product.name} showBack sticky={false} />
 
-                {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
-                    {/* Product Info */}
+            {/* Cover Image */}
+            <div className="relative h-64 w-full bg-neutral-200 dark:bg-neutral-800">
+                {product.image_url && (
+                    <Image
+                        src={product.image_url}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                        priority
+                    />
+                )}
+            </div>
+
+            <div className="container mx-auto px-4 py-6 relative z-10">
+                <div className="bg-white dark:bg-neutral-900 rounded-3xl p-6 shadow-sm border border-neutral-100 dark:border-neutral-800 space-y-6">
+
+                    {/* Header Info */}
                     <div>
                         <div className="flex items-start justify-between gap-4 mb-2">
-                            <h2 className="text-2xl font-bold font-heading">{product.name}</h2>
+                            <h1 className="text-2xl font-bold font-heading">{product.name}</h1>
                             {!product.is_available && (
                                 <Badge variant="error">Indisponível</Badge>
                             )}
@@ -142,8 +137,8 @@ export function ProductModal({
                         <>
                             <Divider />
                             <div className="space-y-3">
-                                <h4 className="font-semibold">Tamanho</h4>
-                                <div className="grid grid-cols-3 gap-2">
+                                <h4 className="font-semibold text-lg">Tamanho</h4>
+                                <div className="grid grid-cols-3 gap-3">
                                     {sizes.map((size) => {
                                         const isSelected = size.id === selectedSize;
                                         return (
@@ -151,13 +146,18 @@ export function ProductModal({
                                                 key={size.id}
                                                 onClick={() => setSelectedSize(size.id)}
                                                 className={cn(
-                                                    "p-3 rounded-xl border-2 font-medium transition-all text-center",
+                                                    "p-4 rounded-xl border-2 font-medium transition-all text-center flex flex-col items-center gap-1",
                                                     isSelected
                                                         ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400"
                                                         : "border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700"
                                                 )}
                                             >
-                                                {size.name}
+                                                <span>{size.name}</span>
+                                                {size.priceMultiplier !== 1 && (
+                                                    <span className="text-xs opacity-75">
+                                                        x{size.priceMultiplier}
+                                                    </span>
+                                                )}
                                             </button>
                                         );
                                     })}
@@ -181,8 +181,8 @@ export function ProductModal({
                     {/* Notes */}
                     <div>
                         <Divider />
-                        <div className="space-y-2">
-                            <label htmlFor="notes" className="font-semibold block">
+                        <div className="space-y-3">
+                            <label htmlFor="notes" className="font-semibold text-lg block">
                                 Observações (opcional)
                             </label>
                             <textarea
@@ -190,8 +190,8 @@ export function ProductModal({
                                 value={notes}
                                 onChange={(e) => setNotes(e.target.value)}
                                 placeholder="Ex: Sem cebola, bem passado..."
-                                className="w-full px-4 py-3 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
-                                rows={3}
+                                className="w-full px-4 py-3 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                                rows={4}
                                 maxLength={200}
                             />
                             <p className="text-xs text-neutral-500 text-right">
@@ -200,42 +200,42 @@ export function ProductModal({
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {/* Footer with Quantity and Add Button */}
-                <div className="border-t border-neutral-200 dark:border-neutral-800 px-6 py-4 bg-white dark:bg-neutral-900">
+            {/* Fixed Footer with Add to Cart Button */}
+            <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl border-t border-neutral-200 dark:border-neutral-800 shadow-[0_-4px_16px_rgba(0,0,0,0.1)] dark:shadow-[0_-4px_16px_rgba(0,0,0,0.3)]">
+                <div className="container mx-auto px-4 py-4 safe-bottom">
                     <div className="flex items-center gap-4">
                         {/* Quantity Selector */}
-                        <div className="flex items-center gap-2 bg-neutral-100 dark:bg-neutral-800 rounded-xl p-1">
+                        <div className="flex items-center gap-3 bg-neutral-100 dark:bg-neutral-800 rounded-xl p-2 border border-neutral-200 dark:border-neutral-700">
                             <button
                                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                className="p-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+                                className="p-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg transition-colors disabled:opacity-50"
                                 disabled={quantity <= 1}
                             >
-                                <Minus className="h-4 w-4" />
+                                <Minus className="h-5 w-5" />
                             </button>
-                            <span className="w-8 text-center font-bold">{quantity}</span>
+                            <span className="w-8 text-center font-bold text-lg">{quantity}</span>
                             <button
                                 onClick={() => setQuantity(quantity + 1)}
                                 className="p-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg transition-colors"
                             >
-                                <Plus className="h-4 w-4" />
+                                <Plus className="h-5 w-5" />
                             </button>
                         </div>
 
-                        {/* Add to Cart Button */}
-                        <Button
-                            fullWidth
-                            size="lg"
+                        {/* Add to Cart Button with Gradient */}
+                        <button
                             onClick={handleAddToCart}
                             disabled={!product.is_available || !canAddToCart}
-                            className="flex items-center justify-center gap-2"
+                            className="flex-1 h-14 rounded-xl font-semibold text-lg text-white bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 disabled:from-neutral-400 disabled:to-neutral-400 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2"
                         >
                             <ShoppingCart className="h-5 w-5" />
                             <span>Adicionar • {formatCurrency(totalPrice)}</span>
-                        </Button>
+                        </button>
                     </div>
                 </div>
             </div>
-        </Modal>
+        </div>
     );
 }

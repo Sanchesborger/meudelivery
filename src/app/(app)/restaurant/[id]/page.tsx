@@ -9,141 +9,16 @@ import { Badge } from "@/components/ui/badge";
 import { ProductCard } from "@/components/ui/product-card";
 import { Button } from "@/components/ui/button";
 import { MenuCategoryTabs, MenuCategory } from "@/components/restaurant/menu-category-tabs";
-import { ProductModal } from "@/components/restaurant/product-modal";
-import { ExtraGroupData } from "@/components/restaurant/product-extras-group";
 import { useCart } from "@/hooks/use-cart";
 import { formatCurrency } from "@/lib/utils";
-import { PRODUCT_SIZES } from "@/lib/constants";
-import { MenuItem } from "@/types";
-
-// Mock data
-const mockRestaurant = {
-    id: "1",
-    name: "Pizza Delícia",
-    description: "As melhores pizzas da região com ingredientes frescos",
-    category: "Pizza",
-    cover_image: "/restaurants/pizza-cover.jpg",
-    logo_image: "/restaurants/pizza-logo.jpg",
-    rating: 4.8,
-    total_reviews: 234,
-    delivery_time: 30,
-    delivery_fee: 5.99,
-    min_order_value: 20,
-    latitude: -23.5505,
-    longitude: -46.6333,
-    address: "Rua das Pizzas, 123 - Centro",
-    phone: "(11) 98765-4321",
-    is_open: true,
-    opening_hours: {},
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-};
-
-const mockMenuItems: MenuItem[] = [
-    {
-        id: "1",
-        restaurant_id: "1",
-        category_id: "pizzas",
-        name: "Pizza Margherita",
-        description: "Molho de tomate, mussarela, manjericão fresco",
-        price: 45.90,
-        image_url: "/menu/margherita.jpg",
-        is_available: true,
-        preparation_time: 25,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-    },
-    {
-        id: "2",
-        restaurant_id: "1",
-        category_id: "pizzas",
-        name: "Pizza Calabresa",
-        description: "Calabresa, cebola, azeitonas, mussarela",
-        price: 48.90,
-        image_url: "/menu/calabresa.jpg",
-        is_available: true,
-        preparation_time: 25,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-    },
-    {
-        id: "3",
-        restaurant_id: "1",
-        category_id: "pizzas",
-        name: "Pizza Quatro Queijos",
-        description: "Mussarela, provolone, gorgonzola, parmesão",
-        price: 52.90,
-        image_url: "/menu/quatro-queijos.jpg",
-        is_available: true,
-        preparation_time: 25,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-    },
-    {
-        id: "4",
-        restaurant_id: "1",
-        category_id: "drinks",
-        name: "Coca-Cola 2L",
-        description: "Refrigerante Coca-Cola 2 litros gelado",
-        price: 12.00,
-        image_url: "/menu/coca-cola.jpg",
-        is_available: true,
-        preparation_time: 5,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-    },
-    {
-        id: "5",
-        restaurant_id: "1",
-        category_id: "desserts",
-        name: "Pudim de Leite",
-        description: "Pudim caseiro cremoso com calda de caramelo",
-        price: 15.90,
-        image_url: "/menu/pudim.jpg",
-        is_available: true,
-        preparation_time: 10,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-    },
-];
-
-// Mock extra groups for pizzas
-const mockExtraGroups: ExtraGroupData[] = [
-    {
-        id: "crust",
-        name: "Tipo de Borda",
-        required: false,
-        minSelection: 0,
-        maxSelection: 1,
-        extras: [
-            { id: "crust-1", name: "Borda Catupiry", price: 8.00 },
-            { id: "crust-2", name: "Borda Cheddar", price: 7.00 },
-            { id: "crust-3", name: "Borda Chocolate", price: 6.00 },
-        ],
-    },
-    {
-        id: "extras",
-        name: "Adicionais",
-        required: false,
-        minSelection: 0,
-        maxSelection: 3,
-        extras: [
-            { id: "extra-1", name: "Bacon", price: 5.00 },
-            { id: "extra-2", name: "Azeitona", price: 3.00 },
-            { id: "extra-3", name: "Orégano Extra", price: 1.00 },
-            { id: "extra-4", name: "Parmesão Ralado", price: 2.00 },
-        ],
-    },
-];
+import { mockRestaurant, mockMenuItems } from "@/lib/mock-data";
 
 export default function RestaurantPage() {
     const params = useParams();
     const router = useRouter();
     const [isFavorite, setIsFavorite] = useState(false);
     const [activeCategory, setActiveCategory] = useState("all");
-    const [selectedProduct, setSelectedProduct] = useState<MenuItem | null>(null);
-    const [showProductModal, setShowProductModal] = useState(false);
-    const { addItem, items, total } = useCart();
+    const { items, total } = useCart();
 
     // Generate categories from menu items
     const categories: MenuCategory[] = useMemo(() => {
@@ -174,43 +49,11 @@ export default function RestaurantPage() {
         return mockMenuItems.filter((item) => item.category_id === activeCategory);
     }, [activeCategory]);
 
-    const handleProductClick = (product: MenuItem) => {
-        setSelectedProduct(product);
-        setShowProductModal(true);
-    };
-
-    const handleAddToCart = (data: {
-        product: MenuItem;
-        quantity: number;
-        selectedSize?: string;
-        selectedExtras: string[];
-        notes: string;
-    }) => {
-        // In real app, would create cart item with all data
-        // For now, simplified version
-        addItem(data.product, data.quantity, data.notes);
+    const handleProductClick = (productId: string) => {
+        router.push(`/restaurant/${params.id}/product/${productId}`);
     };
 
     const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-
-    // Determine if product should show extras (pizzas only for now)
-    const getProductExtras = (product: MenuItem) => {
-        if (product.category_id === "pizzas") {
-            return mockExtraGroups;
-        }
-        return [];
-    };
-
-    const getProductSizes = (product: MenuItem) => {
-        if (product.category_id === "pizzas") {
-            return PRODUCT_SIZES.map((size) => ({
-                id: size.id,
-                name: size.name,
-                priceMultiplier: size.multiplier,
-            }));
-        }
-        return [];
-    };
 
     return (
         <div className="min-h-screen pb-32">
@@ -310,7 +153,7 @@ export default function RestaurantPage() {
                         <ProductCard
                             key={item.id}
                             product={item}
-                            onAdd={() => handleProductClick(item)}
+                            onAdd={() => handleProductClick(item.id)}
                         />
                     ))}
                 </div>
@@ -337,16 +180,6 @@ export default function RestaurantPage() {
                     </Button>
                 </div>
             )}
-
-            {/* Product Modal */}
-            <ProductModal
-                product={selectedProduct}
-                open={showProductModal}
-                onClose={() => setShowProductModal(false)}
-                onAddToCart={handleAddToCart}
-                extraGroups={selectedProduct ? getProductExtras(selectedProduct) : []}
-                sizes={selectedProduct ? getProductSizes(selectedProduct) : []}
-            />
         </div>
     );
 }

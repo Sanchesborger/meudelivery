@@ -12,6 +12,7 @@ interface HeaderProps {
     rightAction?: ReactNode;
     className?: string;
     transparent?: boolean;
+    sticky?: boolean;
 }
 
 export function Header({
@@ -21,6 +22,7 @@ export function Header({
     rightAction,
     className,
     transparent = false,
+    sticky = true,
 }: HeaderProps) {
     const router = useRouter();
 
@@ -35,7 +37,8 @@ export function Header({
     return (
         <header
             className={cn(
-                "sticky top-0 z-40 w-full border-b safe-top",
+                "w-full border-b safe-top",
+                sticky ? "sticky top-0 z-40" : "relative",
                 transparent
                     ? "bg-transparent border-transparent"
                     : "bg-white/80 dark:bg-neutral-900/80 backdrop-blur-lg border-neutral-200 dark:border-neutral-800",
