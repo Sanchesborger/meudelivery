@@ -195,13 +195,19 @@ export default function CartPage() {
             </div>
 
             {/* Fixed Checkout Button */}
-            <div className="fixed bottom-20 left-0 right-0 z-40 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl border-t border-neutral-200 dark:border-neutral-800 shadow-[0_-4px_16px_rgba(0,0,0,0.1)] dark:shadow-[0_-4px_16px_rgba(0,0,0,0.3)]">
-                <div className="container mx-auto px-4 py-4 safe-bottom">
+            <div className="fixed bottom-20 left-0 right-0 z-40 bg-gradient-to-t from-white via-white to-white/80 dark:from-neutral-900 dark:via-neutral-900 dark:to-neutral-900/80 backdrop-blur-xl border-t border-neutral-200 dark:border-neutral-800 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_-8px_24px_rgba(0,0,0,0.4)]">
+                <div className="container mx-auto px-4 py-5 safe-bottom">
                     <button
                         onClick={() => (window.location.href = "/checkout")}
-                        className="w-full h-14 rounded-xl font-semibold text-lg text-white bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 shadow-lg hover:shadow-xl transition-all duration-200"
+                        className="group relative w-full h-16 rounded-lg font-bold text-lg text-white bg-gradient-to-r from-primary-600 via-primary-500 to-accent-500 hover:from-primary-700 hover:via-primary-600 hover:to-accent-600 shadow-[0_4px_20px_rgba(var(--primary-rgb),0.4)] hover:shadow-[0_6px_28px_rgba(var(--primary-rgb),0.5)] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
                     >
-                        Finalizar pedido • {formatCurrency(total)}
+                        <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></span>
+                        <span className="relative flex items-center justify-between px-6">
+                            <span className="flex items-center gap-2">
+                                <span className="text-base font-medium opacity-90">Finalizar pedido</span>
+                            </span>
+                            <span className="text-xl font-bold tracking-tight">{formatCurrency(total)}</span>
+                        </span>
                     </button>
                 </div>
             </div>

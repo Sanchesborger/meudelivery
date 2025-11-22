@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Search, MapPin, Star, Clock, DollarSign, MapPinned, Bike, LayoutGrid } from "lucide-react";
+import { Search, MapPin, Star, Clock, DollarSign, MapPinned, Bike, LayoutGrid, ShoppingBag } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { PromoCarousel } from "@/components/home/promo-carousel";
+import { useCart } from "@/hooks/use-cart";
 
 // Mock data for restaurants
 const mockRestaurants = [
@@ -148,6 +149,7 @@ export default function HomePage() {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("all");
+    const { items } = useCart();
 
     const featuredRestaurants = [...mockRestaurants]
         .sort((a, b) => b.rating - a.rating)
@@ -164,16 +166,35 @@ export default function HomePage() {
 
     return (
         <div className="min-h-screen pb-20 bg-neutral-50 dark:bg-neutral-950">
-            {/* Header with Address */}
+            {/* Header with Address and Cart */}
             <header className="bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 sticky top-0 z-50">
-                <div className="container mx-auto px-4 py-4 space-y-4">
-                    {/* Address */}
-                    <div className="flex items-center gap-2">
-                        <MapPin className="h-5 w-5 text-primary-600 flex-shrink-0" />
-                        <div>
-                            <p className="text-xs text-neutral-600 dark:text-neutral-400">Entregar em</p>
-                            <p className="font-semibold text-sm">Rua Exemplo, 123</p>
+                <div className="container mx-auto px-4 py-3">
+                    <div className="flex items-center justify-between mb-3">
+                        {/* Address */}
+                        <div className="flex items-center gap-2">
+                            <MapPin className="h-5 w-5 text-primary-600 flex-shrink-0" />
+                            <div>
+                                <p className="text-xs text-neutral-600 dark:text-neutral-400">Entregar em</p>
+                                <p className="font-semibold text-sm">Rua Exemplo, 123</p>
+                            </div>
                         </div>
+
+                        {/* Cart Button */}
+                        <button
+                            onClick={() => router.push("/cart")}
+                            className="relative p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                            aria-label="Carrinho"
+                        >
+                            <ShoppingBag className="h-5 w-5" />
+                            {(() => {
+                                const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+                                return cartItemCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                                        {cartItemCount}
+                                    </span>
+                                );
+                            })()}
+                        </button>
                     </div>
 
                     {/* Search */}

@@ -18,7 +18,7 @@ export default function RestaurantPage() {
     const router = useRouter();
     const [isFavorite, setIsFavorite] = useState(false);
     const [activeCategory, setActiveCategory] = useState("all");
-    const { items, total } = useCart();
+    const { items } = useCart();
 
     // Generate categories from menu items
     const categories: MenuCategory[] = useMemo(() => {
@@ -59,6 +59,7 @@ export default function RestaurantPage() {
         <div className="min-h-screen pb-32">
             <Header
                 showBack
+                showCart
                 transparent
                 rightAction={
                     <button
@@ -158,28 +159,6 @@ export default function RestaurantPage() {
                     ))}
                 </div>
             </div>
-
-            {/* Floating Cart Button */}
-            {cartItemCount > 0 && (
-                <div className="fixed bottom-20 left-0 right-0 z-40 px-4 safe-bottom">
-                    <Button
-                        fullWidth
-                        size="lg"
-                        className="shadow-2xl"
-                        onClick={() => router.push("/cart")}
-                    >
-                        <span className="flex items-center justify-between w-full">
-                            <span className="flex items-center gap-2">
-                                <span className="bg-white/20 rounded-full px-2 py-0.5 text-sm font-bold">
-                                    {cartItemCount}
-                                </span>
-                                Ver carrinho
-                            </span>
-                            <span className="font-bold">{formatCurrency(total)}</span>
-                        </span>
-                    </Button>
-                </div>
-            )}
         </div>
     );
 }

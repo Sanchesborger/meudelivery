@@ -36,10 +36,10 @@ export function MenuCategoryTabs({
     }, []);
 
     return (
-        <div className="relative bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800">
+        <div className="relative bg-white/95 dark:bg-neutral-900/95 backdrop-blur-lg border-b border-neutral-200 dark:border-neutral-800 shadow-sm">
             {/* Left Shadow */}
             {showLeftShadow && (
-                <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white dark:from-neutral-900 to-transparent z-10 pointer-events-none" />
+                <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white/95 dark:from-neutral-900/95 to-transparent z-10 pointer-events-none" />
             )}
 
             {/* Scrollable Tabs */}
@@ -86,7 +86,7 @@ export function MenuCategoryTabs({
 
             {/* Right Shadow */}
             {showRightShadow && (
-                <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-neutral-900 to-transparent z-10 pointer-events-none" />
+                <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white/95 dark:from-neutral-900/95 to-transparent z-10 pointer-events-none" />
             )}
         </div>
     );

@@ -83,7 +83,7 @@ export default function ProductPage() {
         // In a real app, we would pass all options. 
         // For now, the useCart hook is simple.
         addItem(product, quantity, notes);
-        router.back();
+        router.push("/cart");
     };
 
     // Validation
@@ -203,11 +203,11 @@ export default function ProductPage() {
             </div>
 
             {/* Fixed Footer with Add to Cart Button */}
-            <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl border-t border-neutral-200 dark:border-neutral-800 shadow-[0_-4px_16px_rgba(0,0,0,0.1)] dark:shadow-[0_-4px_16px_rgba(0,0,0,0.3)]">
-                <div className="container mx-auto px-4 py-4 safe-bottom">
+            <div className="fixed bottom-20 left-0 right-0 z-50 bg-gradient-to-t from-white via-white to-white/80 dark:from-neutral-900 dark:via-neutral-900 dark:to-neutral-900/80 backdrop-blur-xl border-t border-neutral-200 dark:border-neutral-800 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_-8px_24px_rgba(0,0,0,0.4)]">
+                <div className="container mx-auto px-4 py-5 safe-bottom">
                     <div className="flex items-center gap-4">
                         {/* Quantity Selector */}
-                        <div className="flex items-center gap-3 bg-neutral-100 dark:bg-neutral-800 rounded-xl p-2 border border-neutral-200 dark:border-neutral-700">
+                        <div className="flex items-center gap-3 bg-neutral-100 dark:bg-neutral-800 rounded-lg p-2 border border-neutral-200 dark:border-neutral-700">
                             <button
                                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
                                 className="p-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg transition-colors disabled:opacity-50"
@@ -224,14 +224,19 @@ export default function ProductPage() {
                             </button>
                         </div>
 
-                        {/* Add to Cart Button with Gradient */}
+                        {/* Add to Cart Button with Premium Design */}
                         <button
                             onClick={handleAddToCart}
                             disabled={!product.is_available || !canAddToCart}
-                            className="flex-1 h-14 rounded-xl font-semibold text-lg text-white bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 disabled:from-neutral-400 disabled:to-neutral-400 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2"
+                            className="group relative flex-1 h-16 rounded-lg font-bold text-lg text-white bg-gradient-to-r from-primary-600 via-primary-500 to-accent-500 hover:from-primary-700 hover:via-primary-600 hover:to-accent-600 disabled:from-neutral-400 disabled:to-neutral-400 disabled:cursor-not-allowed shadow-[0_4px_20px_rgba(var(--primary-rgb),0.4)] hover:shadow-[0_6px_28px_rgba(var(--primary-rgb),0.5)] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
                         >
-                            <ShoppingCart className="h-5 w-5" />
-                            <span>Adicionar • {formatCurrency(totalPrice)}</span>
+                            <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></span>
+                            <span className="relative flex items-center justify-center gap-2">
+                                <ShoppingCart className="h-5 w-5" />
+                                <span>Adicionar</span>
+                                <span className="font-bold">•</span>
+                                <span className="font-bold tracking-tight">{formatCurrency(totalPrice)}</span>
+                            </span>
                         </button>
                     </div>
                 </div>
