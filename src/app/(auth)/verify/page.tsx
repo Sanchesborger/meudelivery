@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { supabase } from "@/lib/supabase/client";
 import { OTPInput } from "@/components/auth/otp-input";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -16,8 +16,6 @@ export default function VerifyPage() {
     const [error, setError] = useState("");
     const [canResend, setCanResend] = useState(false);
     const [countdown, setCountdown] = useState(60);
-
-    const supabase = createClientComponentClient();
 
     useEffect(() => {
         if (!phone) {

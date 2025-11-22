@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { supabase } from "@/lib/supabase/client";
 
 interface PhoneAuthProps {
     onSubmit: (phone: string) => void;
@@ -14,7 +14,6 @@ interface PhoneAuthProps {
 export function PhoneAuth({ onSubmit, isLoading = false }: PhoneAuthProps) {
     const [phone, setPhone] = useState("");
     const [error, setError] = useState("");
-    const supabase = createClientComponentClient();
 
     const formatPhone = (value: string) => {
         // Remove tudo exceto números
@@ -53,7 +52,11 @@ export function PhoneAuth({ onSubmit, isLoading = false }: PhoneAuthProps) {
             });
 
             if (authError) {
-                setError(authError.message);
+                if (authError.message.includes("Unsupported phone provider")) {
+                    setError("Erro de configuração: Provedor de telefone não habilitado no Supabase.");
+                } else {
+                    setError(authError.message);
+                }
                 return;
             }
 
@@ -92,7 +95,7 @@ export function PhoneAuth({ onSubmit, isLoading = false }: PhoneAuthProps) {
 
             <Button
                 type="submit"
-                className="w-full h-12 bg-gradient-to-r from-primary-600 via-primary-500 to-accent-500 hover:from-primary-700 hover:via-primary-600 hover:to-accent-600"
+                className="w-full h-12 bg-gradient-to-r from-primary-700 via-primary-600 to-primary-500 hover:from-primary-800 hover:via-primary-700 hover:to-primary-600"
                 disabled={isLoading || phone.replace(/\D/g, "").length !== 11}
             >
                 {isLoading ? "Enviando..." : "Continuar"}

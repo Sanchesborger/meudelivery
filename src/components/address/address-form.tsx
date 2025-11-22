@@ -34,6 +34,7 @@ export function AddressForm({ initialData, onSubmit, onCancel }: AddressFormProp
         is_default: initialData?.is_default || false,
     });
 
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     const handleZipCodeChange = (value: string) => {
@@ -46,17 +47,7 @@ export function AddressForm({ initialData, onSubmit, onCancel }: AddressFormProp
             setFormData({ ...formData, zip_code: formatted });
             setErrors({ ...errors, zip_code: "" });
 
-            // Auto-fill mock data when CEP is complete
-            if (cleaned.length === 8) {
-                setFormData({
-                    ...formData,
-                    zip_code: formatted,
-                    street: "Rua Exemplo",
-                    neighborhood: "Centro",
-                    city: "São Paulo",
-                    state: "SP",
-                });
-            }
+            // TODO: Implement real CEP API integration
         }
     };
 
@@ -89,10 +80,15 @@ export function AddressForm({ initialData, onSubmit, onCancel }: AddressFormProp
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (validate()) {
-            onSubmit(formData);
+            setIsSubmitting(true);
+            try {
+                await onSubmit(formData);
+            } finally {
+                setIsSubmitting(false);
+            }
         }
     };
 
@@ -135,6 +131,7 @@ export function AddressForm({ initialData, onSubmit, onCancel }: AddressFormProp
                 }}
                 error={errors.label}
                 fullWidth
+                disabled={isSubmitting}
             />
 
             {/* ZIP Code */}
@@ -145,6 +142,7 @@ export function AddressForm({ initialData, onSubmit, onCancel }: AddressFormProp
                 onChange={(e) => handleZipCodeChange(e.target.value)}
                 error={errors.zip_code}
                 fullWidth
+                disabled={isSubmitting}
             />
 
             {/* Street and Number */}
@@ -160,6 +158,7 @@ export function AddressForm({ initialData, onSubmit, onCancel }: AddressFormProp
                         }}
                         error={errors.street}
                         fullWidth
+                        disabled={isSubmitting}
                     />
                 </div>
                 <Input
@@ -172,6 +171,7 @@ export function AddressForm({ initialData, onSubmit, onCancel }: AddressFormProp
                     }}
                     error={errors.number}
                     fullWidth
+                    disabled={isSubmitting}
                 />
             </div>
 
@@ -182,6 +182,7 @@ export function AddressForm({ initialData, onSubmit, onCancel }: AddressFormProp
                 value={formData.complement}
                 onChange={(e) => setFormData({ ...formData, complement: e.target.value })}
                 fullWidth
+                disabled={isSubmitting}
             />
 
             {/* Neighborhood */}
@@ -195,6 +196,7 @@ export function AddressForm({ initialData, onSubmit, onCancel }: AddressFormProp
                 }}
                 error={errors.neighborhood}
                 fullWidth
+                disabled={isSubmitting}
             />
 
             {/* City and State */}
@@ -209,6 +211,7 @@ export function AddressForm({ initialData, onSubmit, onCancel }: AddressFormProp
                     }}
                     error={errors.city}
                     fullWidth
+                    disabled={isSubmitting}
                 />
                 <Input
                     label="Estado"
@@ -223,6 +226,7 @@ export function AddressForm({ initialData, onSubmit, onCancel }: AddressFormProp
                     }}
                     error={errors.state}
                     fullWidth
+                    disabled={isSubmitting}
                 />
             </div>
 
@@ -234,12 +238,13 @@ export function AddressForm({ initialData, onSubmit, onCancel }: AddressFormProp
                         variant="outline"
                         onClick={onCancel}
                         fullWidth
+                        disabled={isSubmitting}
                     >
                         Cancelar
                     </Button>
                 )}
-                <Button type="submit" fullWidth>
-                    Salvar endereço
+                <Button type="submit" fullWidth disabled={isSubmitting}>
+                    {isSubmitting ? "Salvando..." : "Salvar endereço"}
                 </Button>
             </div>
         </form>

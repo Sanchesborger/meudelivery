@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Sora } from "next/font/google";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const inter = Inter({
@@ -33,18 +33,7 @@ export default function RootLayout({
     <html lang="pt-BR" className={`${inter.variable} ${sora.variable}`}>
       <body className="antialiased">
         {children}
-        <Toaster
-          position="top-center"
-          toastOptions={{
-            duration: 3000,
-            style: {
-              background: "#363636",
-              color: "#fff",
-              borderRadius: "1rem",
-              padding: "1rem",
-            },
-          }}
-        />
+        <Toaster richColors position="top-center" />
       </body>
     </html>
   );

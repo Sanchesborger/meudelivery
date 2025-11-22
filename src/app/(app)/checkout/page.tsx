@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { MapPin, Edit2, Wallet, FileText } from "lucide-react";
+import { MapPin, Edit2, Wallet, FileText, Loader2 } from "lucide-react";
 import { Header } from "@/components/ui/header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,63 +14,27 @@ import { PaymentMethodSelector } from "@/components/payment/payment-method-selec
 import { PixPayment } from "@/components/payment/pix-payment";
 import { CardPayment, CardData } from "@/components/payment/card-payment";
 import { AddressSelector } from "@/components/checkout/address-selector";
-import { AddressForm } from "@/components/checkout/address-form";
+import { AddressForm } from "@/components/address/address-form"; // Use generic form
 import { OrderConfirmationModal } from "@/components/checkout/order-confirmation-modal";
 import { useCart } from "@/hooks/use-cart";
 import { formatCurrency } from "@/lib/utils";
 import { PAYMENT_METHODS, PaymentMethod } from "@/lib/constants";
 import { Address } from "@/types";
-
-// Mock addresses
-const mockAddresses: Address[] = [
-    {
-        id: "1",
-        user_id: "user-1",
-        label: "Casa",
-        type: "home",
-        street: "Rua das Flores",
-        number: "123",
-        complement: "Apto 45",
-        neighborhood: "Centro",
-        city: "São Paulo",
-        state: "SP",
-        zip_code: "01310-100",
-        latitude: -23.5505,
-        longitude: -46.6333,
-        is_default: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-    },
-    {
-        id: "2",
-        user_id: "user-1",
-        label: "Trabalho",
-        type: "work",
-        street: "Avenida Paulista",
-        number: "1500",
-        complement: "Sala 210",
-        neighborhood: "Bela Vista",
-        city: "São Paulo",
-        state: "SP",
-        zip_code: "01310-200",
-        latitude: -23.5629,
-        longitude: -46.6544,
-        is_default: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-    },
-];
+import { addressService } from "@/services/addresses";
+import { orderService } from "@/services/orders";
+import { toast } from "sonner";
 
 export default function CheckoutPage() {
     const router = useRouter();
     const { items, restaurant, subtotal, deliveryFee, discount, total, clearCart } = useCart();
 
-    const [addresses, setAddresses] = useState<Address[]>(mockAddresses);
-    const [selectedAddress, setSelectedAddress] = useState<Address>(mockAddresses[0]);
+    const [addresses, setAddresses] = useState<Address[]>([]);
+    const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
     const [orderNotes, setOrderNotes] = useState("");
     const [changeFor, setChangeFor] = useState("");
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isLoadingAddresses, setIsLoadingAddresses] = useState(true);
 
     // Modal states
     const [showAddressSelector, setShowAddressSelector] = useState(false);
@@ -78,6 +42,26 @@ export default function CheckoutPage() {
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [addressToEdit, setAddressToEdit] = useState<Address | null>(null);
+
+    // Fetch addresses on mount
+    useEffect(() => {
+        const fetchAddresses = async () => {
+            try {
+                const data = await addressService.getAddresses();
+                setAddresses(data);
+                // Select default address or first one
+                const defaultAddr = data.find(a => a.is_default) || data[0];
+                if (defaultAddr) setSelectedAddress(defaultAddr);
+            } catch (error) {
+                console.error("Error fetching addresses:", error);
+                toast.error("Erro ao carregar endereços");
+            } finally {
+                setIsLoadingAddresses(false);
+            }
+        };
+
+        fetchAddresses();
+    }, []);
 
     // Redirect if cart is empty
     if (items.length === 0) {
@@ -87,6 +71,7 @@ export default function CheckoutPage() {
 
     const handleSelectAddress = (address: Address) => {
         setSelectedAddress(address);
+        setShowAddressSelector(false);
     };
 
     const handleAddNewAddress = () => {
@@ -101,38 +86,25 @@ export default function CheckoutPage() {
         setShowAddressForm(true);
     };
 
-    const handleSaveAddress = (addressData: Partial<Address>) => {
-        if (addressToEdit) {
-            // Update existing
-            setAddresses((prev) =>
-                prev.map((addr) =>
-                    addr.id === addressToEdit.id
-                        ? { ...addr, ...addressData, updated_at: new Date().toISOString() }
-                        : addressData.is_default
-                            ? { ...addr, is_default: false }
-                            : addr
-                )
-            );
-        } else {
-            // Add new
-            const newAddress: Address = {
-                ...addressData,
-                id: Date.now().toString(),
-                user_id: "user-1",
-                latitude: -23.5505,
-                longitude: -46.6333,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-            } as Address;
-
-            if (newAddress.is_default) {
-                setAddresses((prev) =>
-                    prev.map((addr) => ({ ...addr, is_default: false }))
-                );
+    const handleSaveAddress = async (addressData: Omit<Address, "id" | "user_id" | "created_at" | "updated_at">) => {
+        try {
+            let savedAddress: Address;
+            if (addressToEdit) {
+                savedAddress = await addressService.updateAddress(addressToEdit.id, addressData);
+                toast.success("Endereço atualizado");
+            } else {
+                savedAddress = await addressService.createAddress(addressData);
+                toast.success("Endereço criado");
             }
 
-            setAddresses((prev) => [...prev, newAddress]);
-            setSelectedAddress(newAddress);
+            // Refresh addresses
+            const data = await addressService.getAddresses();
+            setAddresses(data);
+            setSelectedAddress(savedAddress);
+            setShowAddressForm(false);
+        } catch (error) {
+            console.error("Error saving address:", error);
+            toast.error("Erro ao salvar endereço");
         }
     };
 
@@ -149,36 +121,62 @@ export default function CheckoutPage() {
 
     const handleCardSubmit = (cardData: CardData) => {
         console.log("Card data:", cardData);
+        // In a real app, we would tokenize the card here
         setShowPaymentModal(false);
     };
 
     const handleProceedToConfirmation = () => {
+        if (!selectedAddress) {
+            toast.error("Selecione um endereço de entrega");
+            return;
+        }
         if (!selectedPaymentMethod) {
-            alert("Por favor, selecione um método de pagamento");
+            toast.error("Selecione uma forma de pagamento");
             return;
         }
         setShowConfirmationModal(true);
     };
 
     const handleConfirmOrder = async () => {
-        if (!selectedPaymentMethod) return;
+        if (!selectedPaymentMethod || !selectedAddress || !restaurant) return;
 
         setIsProcessing(true);
 
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        try {
+            const order = await orderService.createOrder({
+                restaurantId: restaurant.id,
+                addressId: selectedAddress.id,
+                items,
+                subtotal,
+                deliveryFee,
+                discount,
+                total,
+                paymentMethod: selectedPaymentMethod,
+                changeFor: selectedPaymentMethod === PAYMENT_METHODS.CASH ? changeFor : undefined,
+                notes: orderNotes,
+            });
 
-        // Create mock order
-        const orderId = Math.random().toString(36).substring(7);
-
-        // Clear cart
-        clearCart();
-
-        // Redirect to order tracking
-        router.push(`/order/${orderId}`);
+            clearCart();
+            router.push(`/order/${order.id}`);
+            toast.success("Pedido realizado com sucesso!");
+        } catch (error) {
+            console.error("Error creating order:", error);
+            toast.error("Erro ao realizar pedido. Tente novamente.");
+        } finally {
+            setIsProcessing(false);
+            setShowConfirmationModal(false);
+        }
     };
 
     const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+
+    if (isLoadingAddresses) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen pb-32">
@@ -187,30 +185,39 @@ export default function CheckoutPage() {
             <div className="container mx-auto px-4 py-6 space-y-6">
                 {/* Delivery Address */}
                 <Card variant="outlined" padding="md">
-                    <div className="flex items-start gap-3 mb-3">
-                        <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
-                            <MapPin className="h-5 w-5 text-primary-600" />
+                    {selectedAddress ? (
+                        <div className="flex items-start gap-3 mb-3">
+                            <div className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
+                                <MapPin className="h-5 w-5 text-primary-600" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="font-semibold font-heading mb-1">
+                                    Endereço de entrega
+                                </h3>
+                                <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                                    {selectedAddress.street}, {selectedAddress.number}
+                                    {selectedAddress.complement && ` - ${selectedAddress.complement}`}
+                                </p>
+                                <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                                    {selectedAddress.neighborhood} - {selectedAddress.city},{" "}
+                                    {selectedAddress.state}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setShowAddressSelector(true)}
+                                className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+                            >
+                                <Edit2 className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
+                            </button>
                         </div>
-                        <div className="flex-1">
-                            <h3 className="font-semibold font-heading mb-1">
-                                Endereço de entrega
-                            </h3>
-                            <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                                {selectedAddress.street}, {selectedAddress.number}
-                                {selectedAddress.complement && ` - ${selectedAddress.complement}`}
-                            </p>
-                            <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                                {selectedAddress.neighborhood} - {selectedAddress.city},{" "}
-                                {selectedAddress.state}
-                            </p>
+                    ) : (
+                        <div className="text-center py-4">
+                            <p className="text-neutral-600 mb-3">Nenhum endereço selecionado</p>
+                            <Button onClick={() => setShowAddressSelector(true)} variant="outline">
+                                Selecionar endereço
+                            </Button>
                         </div>
-                        <button
-                            onClick={() => setShowAddressSelector(true)}
-                            className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
-                        >
-                            <Edit2 className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
-                        </button>
-                    </div>
+                    )}
                 </Card>
 
                 {/* Order Items */}
@@ -335,7 +342,7 @@ export default function CheckoutPage() {
                     fullWidth
                     size="lg"
                     onClick={handleProceedToConfirmation}
-                    disabled={!selectedPaymentMethod}
+                    disabled={!selectedPaymentMethod || !selectedAddress}
                 >
                     Revisar e confirmar • {formatCurrency(total)}
                 </Button>
@@ -346,19 +353,25 @@ export default function CheckoutPage() {
                 open={showAddressSelector}
                 onClose={() => setShowAddressSelector(false)}
                 addresses={addresses}
-                selectedAddressId={selectedAddress.id}
+                selectedAddressId={selectedAddress?.id}
                 onSelectAddress={handleSelectAddress}
                 onAddNew={handleAddNewAddress}
                 onEdit={handleEditAddress}
             />
 
             {/* Address Form Modal */}
-            <AddressForm
+            <Modal
                 open={showAddressForm}
                 onClose={() => setShowAddressForm(false)}
-                onSave={handleSaveAddress}
-                initialAddress={addressToEdit}
-            />
+                title={addressToEdit ? "Editar endereço" : "Novo endereço"}
+                size="md"
+            >
+                <AddressForm
+                    initialData={addressToEdit || undefined}
+                    onSubmit={handleSaveAddress}
+                    onCancel={() => setShowAddressForm(false)}
+                />
+            </Modal>
 
             {/* Payment Modal */}
             <Modal
@@ -397,7 +410,7 @@ export default function CheckoutPage() {
                 open={showConfirmationModal}
                 onClose={() => setShowConfirmationModal(false)}
                 onConfirm={handleConfirmOrder}
-                address={selectedAddress}
+                address={selectedAddress!}
                 paymentMethod={selectedPaymentMethod || ""}
                 itemCount={itemCount}
                 subtotal={subtotal}

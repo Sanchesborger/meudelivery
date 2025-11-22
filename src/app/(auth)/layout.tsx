@@ -28,14 +28,14 @@ export default function AuthLayout({
     }, [router, supabase]);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
+        <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-neutral-100 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
             {/* Background Pattern */}
             <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-5" />
 
             <div className="relative min-h-screen flex flex-col items-center justify-center p-4">
                 {/* Logo */}
                 <div className="mb-8 text-center">
-                    <h1 className="text-4xl font-bold font-heading bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
+                    <h1 className="text-4xl font-bold font-heading bg-gradient-to-r from-primary-600 to-neutral-800 dark:to-neutral-200 bg-clip-text text-transparent">
                         DeliveryX
                     </h1>
                     <p className="text-neutral-600 dark:text-neutral-400 mt-2">

@@ -11,6 +11,7 @@ import {
     MessageCircle,
     Receipt,
     Star,
+    Loader2,
 } from "lucide-react";
 import { Header } from "@/components/ui/header";
 import { Card } from "@/components/ui/card";
@@ -24,79 +25,49 @@ import { ChatInterface } from "@/components/order/chat-interface";
 import { RatingModal } from "@/components/order/rating-modal";
 import { OrderReceipt } from "@/components/order/order-receipt";
 import { formatCurrency } from "@/lib/utils";
-import { ORDER_STATUS, ORDER_STATUS_LABELS } from "@/lib/constants";
-
-// Mock order data
-const mockOrder = {
-    id: "ABC123",
-    status: ORDER_STATUS.ON_THE_WAY,
-    createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-    estimatedDeliveryTime: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-    restaurant: {
-        name: "Pizza Delícia",
-        logo: "/restaurants/pizza-logo.jpg",
-        address: "Rua das Pizzas, 456",
-        location: { lat: -23.550, lng: -46.633 },
-    },
-    items: [
-        {
-            id: "1",
-            name: "Pizza Margherita Grande",
-            quantity: 1,
-            price: 45.90,
-            image: "/menu/pizza-margherita.jpg",
-        },
-        {
-            id: "2",
-            name: "Coca-Cola 2L",
-            quantity: 1,
-            price: 12.00,
-        },
-    ],
-    subtotal: 57.90,
-    deliveryFee: 7.90,
-    discount: 0,
-    total: 65.80,
-    paymentMethod: "pix",
-    deliveryAddress: {
-        street: "Rua das Flores",
-        number: "123",
-        complement: "Apto 45",
-        neighborhood: "Centro",
-        city: "São Paulo",
-        state: "SP",
-        location: { lat: -23.555, lng: -46.640 },
-    },
-    driver: {
-        id: "driver-1",
-        name: "Carlos Silva",
-        photo: "/drivers/driver-1.jpg",
-        rating: 4.8,
-        vehicle: "Moto Honda CG 160",
-        plate: "ABC-1234",
-        location: { lat: -23.552, lng: -46.636 },
-    },
-};
+import { ORDER_STATUS, ORDER_STATUS_LABELS, PAYMENT_METHOD_LABELS } from "@/lib/constants";
+import { orderService } from "@/services/orders";
+import { toast } from "sonner";
 
 export default function OrderTrackingPage() {
     const params = useParams();
     const orderId = params.id as string;
 
-    const [currentStatus, setCurrentStatus] = useState<string>(mockOrder.status);
+    const [order, setOrder] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes in seconds
     const [showChat, setShowChat] = useState(false);
     const [showRating, setShowRating] = useState(false);
     const [showReceipt, setShowReceipt] = useState(false);
 
+    useEffect(() => {
+        const fetchOrder = async () => {
+            try {
+                const data = await orderService.getOrder(orderId);
+                setOrder(data);
+            } catch (error) {
+                console.error("Error fetching order:", error);
+                toast.error("Erro ao carregar pedido");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchOrder();
+    }, [orderId]);
+
     // Simulate real-time updates
     useEffect(() => {
+        if (!order) return;
+
         const timer = setInterval(() => {
             setTimeLeft((prev) => {
                 if (prev <= 0) {
                     // Simulate delivery completion
-                    if (currentStatus === ORDER_STATUS.ON_THE_WAY) {
-                        setCurrentStatus(ORDER_STATUS.DELIVERED);
-                        setShowRating(true);
+                    if (order.status === ORDER_STATUS.ON_THE_WAY) {
+                        // In real app, this would come from websocket/polling
+                        // setOrder(prev => ({ ...prev, status: ORDER_STATUS.DELIVERED }));
+                        // setShowRating(true);
                     }
                     return 0;
                 }
@@ -105,46 +76,61 @@ export default function OrderTrackingPage() {
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [currentStatus]);
+    }, [order]);
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+            </div>
+        );
+    }
+
+    if (!order) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center p-4 text-center">
+                <Package className="h-16 w-16 text-neutral-300 mb-4" />
+                <h2 className="text-xl font-bold mb-2">Pedido não encontrado</h2>
+                <p className="text-neutral-600">Não foi possível encontrar os detalhes deste pedido.</p>
+            </div>
+        );
+    }
 
     // Generate timeline steps
     const timelineSteps: TimelineStep[] = [
         {
             status: ORDER_STATUS.CONFIRMED,
             label: ORDER_STATUS_LABELS[ORDER_STATUS.CONFIRMED],
-            timestamp: mockOrder.createdAt,
+            timestamp: order.created_at,
             completed: true,
-            active: false,
+            active: order.status === ORDER_STATUS.CONFIRMED,
         },
         {
             status: ORDER_STATUS.PREPARING,
             label: ORDER_STATUS_LABELS[ORDER_STATUS.PREPARING],
-            timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-            completed: true,
-            active: false,
+            timestamp: undefined, // In real app, fetch from status history
+            completed: [ORDER_STATUS.PREPARING, ORDER_STATUS.READY, ORDER_STATUS.ON_THE_WAY, ORDER_STATUS.DELIVERED].includes(order.status),
+            active: order.status === ORDER_STATUS.PREPARING,
         },
         {
             status: ORDER_STATUS.READY,
             label: ORDER_STATUS_LABELS[ORDER_STATUS.READY],
-            timestamp: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-            completed: true,
-            active: false,
+            timestamp: undefined,
+            completed: [ORDER_STATUS.READY, ORDER_STATUS.ON_THE_WAY, ORDER_STATUS.DELIVERED].includes(order.status),
+            active: order.status === ORDER_STATUS.READY,
         },
         {
             status: ORDER_STATUS.ON_THE_WAY,
             label: ORDER_STATUS_LABELS[ORDER_STATUS.ON_THE_WAY],
-            timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-            completed: currentStatus === ORDER_STATUS.DELIVERED,
-            active: currentStatus === ORDER_STATUS.ON_THE_WAY,
+            timestamp: undefined,
+            completed: [ORDER_STATUS.ON_THE_WAY, ORDER_STATUS.DELIVERED].includes(order.status),
+            active: order.status === ORDER_STATUS.ON_THE_WAY,
         },
         {
             status: ORDER_STATUS.DELIVERED,
             label: ORDER_STATUS_LABELS[ORDER_STATUS.DELIVERED],
-            timestamp:
-                currentStatus === ORDER_STATUS.DELIVERED
-                    ? new Date().toISOString()
-                    : undefined,
-            completed: currentStatus === ORDER_STATUS.DELIVERED,
+            timestamp: order.status === ORDER_STATUS.DELIVERED ? order.updated_at : undefined,
+            completed: order.status === ORDER_STATUS.DELIVERED,
             active: false,
         },
     ];
@@ -165,7 +151,8 @@ export default function OrderTrackingPage() {
 
     const handleRatingSubmit = (rating: any) => {
         console.log("Rating submitted:", rating);
-        // In real app, submit to API
+        toast.success("Avaliação enviada com sucesso!");
+        setShowRating(false);
     };
 
     const minutes = Math.floor(timeLeft / 60);
@@ -181,20 +168,16 @@ export default function OrderTrackingPage() {
                     <div className="flex items-start justify-between mb-4">
                         <div>
                             <h2 className="text-2xl font-bold font-heading mb-2">
-                                Pedido #{orderId}
+                                Pedido #{order.id.substring(0, 8)}
                             </h2>
                             <Badge
-                                variant={getStatusColor(currentStatus) as any}
+                                variant={getStatusColor(order.status) as any}
                                 size="lg"
                             >
-                                {
-                                    ORDER_STATUS_LABELS[
-                                    currentStatus as keyof typeof ORDER_STATUS_LABELS
-                                    ]
-                                }
+                                {ORDER_STATUS_LABELS[order.status as keyof typeof ORDER_STATUS_LABELS]}
                             </Badge>
                         </div>
-                        {currentStatus !== ORDER_STATUS.DELIVERED && (
+                        {order.status !== ORDER_STATUS.DELIVERED && (
                             <div className="text-right">
                                 <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
                                     Previsão de entrega
@@ -212,18 +195,26 @@ export default function OrderTrackingPage() {
                 </Card>
 
                 {/* Map */}
-                {currentStatus === ORDER_STATUS.ON_THE_WAY && (
+                {order.status === ORDER_STATUS.ON_THE_WAY && (
                     <DeliveryMap
-                        restaurantLocation={mockOrder.restaurant.location}
-                        driverLocation={mockOrder.driver?.location}
-                        userLocation={mockOrder.deliveryAddress.location}
+                        restaurantLocation={{ lat: -23.550, lng: -46.633 }} // Mock location
+                        driverLocation={{ lat: -23.552, lng: -46.636 }} // Mock location
+                        userLocation={{ lat: order.address.latitude, lng: order.address.longitude }}
                     />
                 )}
 
-                {/* Driver Info */}
-                {mockOrder.driver && currentStatus === ORDER_STATUS.ON_THE_WAY && (
+                {/* Driver Info - Mocked for now */}
+                {order.status === ORDER_STATUS.ON_THE_WAY && (
                     <div className="relative">
-                        <DriverCard driver={mockOrder.driver} />
+                        <DriverCard driver={{
+                            id: "driver-1",
+                            name: "Carlos Silva",
+                            photo: "/drivers/driver-1.jpg",
+                            rating: 4.8,
+                            vehicle: "Moto Honda CG 160",
+                            plate: "ABC-1234",
+                            location: { lat: -23.552, lng: -46.636 },
+                        }} />
                         {/* Chat Button on Driver Card */}
                         <button
                             onClick={() => setShowChat(true)}
@@ -235,7 +226,7 @@ export default function OrderTrackingPage() {
                 )}
 
                 {/* Action Buttons */}
-                {currentStatus === ORDER_STATUS.DELIVERED && (
+                {order.status === ORDER_STATUS.DELIVERED && (
                     <div className="grid grid-cols-2 gap-3">
                         <Button variant="outline" onClick={() => setShowReceipt(true)}>
                             <Receipt className="h-4 w-4 mr-2" />
@@ -251,7 +242,7 @@ export default function OrderTrackingPage() {
                 {/* Timeline */}
                 <Card variant="outlined" padding="lg">
                     <h3 className="font-semibold font-heading mb-4">Status do pedido</h3>
-                    <OrderTimeline currentStatus={currentStatus} steps={timelineSteps} />
+                    <OrderTimeline currentStatus={order.status} steps={timelineSteps} />
                 </Card>
 
                 {/* Order Details */}
@@ -261,13 +252,13 @@ export default function OrderTrackingPage() {
                         Itens do pedido
                     </h3>
                     <div className="space-y-3 mb-4">
-                        {mockOrder.items.map((item) => (
+                        {order.items.map((item: any) => (
                             <div key={item.id} className="flex gap-3">
-                                {item.image && (
+                                {item.menu_item.image_url && (
                                     <div className="relative h-14 w-14 rounded-lg overflow-hidden bg-neutral-200 dark:bg-neutral-800 flex-shrink-0">
                                         <Image
-                                            src={item.image}
-                                            alt={item.name}
+                                            src={item.menu_item.image_url}
+                                            alt={item.menu_item.name}
                                             fill
                                             className="object-cover"
                                         />
@@ -275,11 +266,11 @@ export default function OrderTrackingPage() {
                                 )}
                                 <div className="flex-1">
                                     <p className="font-medium">
-                                        {item.quantity}x {item.name}
+                                        {item.quantity}x {item.menu_item.name}
                                     </p>
                                 </div>
                                 <p className="font-semibold text-neutral-700 dark:text-neutral-300">
-                                    {formatCurrency(item.price * item.quantity)}
+                                    {formatCurrency(item.subtotal)}
                                 </p>
                             </div>
                         ))}
@@ -293,7 +284,7 @@ export default function OrderTrackingPage() {
                                 Subtotal
                             </span>
                             <span className="font-medium">
-                                {formatCurrency(mockOrder.subtotal)}
+                                {formatCurrency(order.subtotal)}
                             </span>
                         </div>
                         <div className="flex justify-between text-sm">
@@ -301,14 +292,14 @@ export default function OrderTrackingPage() {
                                 Taxa de entrega
                             </span>
                             <span className="font-medium">
-                                {formatCurrency(mockOrder.deliveryFee)}
+                                {formatCurrency(order.delivery_fee)}
                             </span>
                         </div>
-                        {mockOrder.discount > 0 && (
+                        {order.discount > 0 && (
                             <div className="flex justify-between text-sm text-accent-600">
                                 <span>Desconto</span>
                                 <span className="font-medium">
-                                    -{formatCurrency(mockOrder.discount)}
+                                    -{formatCurrency(order.discount)}
                                 </span>
                             </div>
                         )}
@@ -316,7 +307,7 @@ export default function OrderTrackingPage() {
                         <div className="flex justify-between font-bold">
                             <span>Total</span>
                             <span className="text-primary-600">
-                                {formatCurrency(mockOrder.total)}
+                                {formatCurrency(order.total)}
                             </span>
                         </div>
                     </div>
@@ -329,13 +320,13 @@ export default function OrderTrackingPage() {
                         Endereço de entrega
                     </h3>
                     <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                        {mockOrder.deliveryAddress.street}, {mockOrder.deliveryAddress.number}
-                        {mockOrder.deliveryAddress.complement &&
-                            ` - ${mockOrder.deliveryAddress.complement}`}
+                        {order.address.street}, {order.address.number}
+                        {order.address.complement &&
+                            ` - ${order.address.complement}`}
                     </p>
                     <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                        {mockOrder.deliveryAddress.neighborhood} -{" "}
-                        {mockOrder.deliveryAddress.city}, {mockOrder.deliveryAddress.state}
+                        {order.address.neighborhood} -{" "}
+                        {order.address.city}, {order.address.state}
                     </p>
                 </Card>
 
@@ -345,8 +336,8 @@ export default function OrderTrackingPage() {
                         <CreditCard className="h-5 w-5" />
                         Forma de pagamento
                     </h3>
-                    <p className="text-sm text-neutral-700 dark:text-neutral-300 uppercase">
-                        {mockOrder.paymentMethod}
+                    <p className="text-sm text-neutral-700 dark:text-neutral-300">
+                        {PAYMENT_METHOD_LABELS[order.payment_method as keyof typeof PAYMENT_METHOD_LABELS] || order.payment_method}
                     </p>
                 </Card>
             </div>
@@ -355,8 +346,8 @@ export default function OrderTrackingPage() {
             <ChatInterface
                 open={showChat}
                 onClose={() => setShowChat(false)}
-                recipientName={mockOrder.driver?.name || "Entregador"}
-                recipientAvatar={mockOrder.driver?.photo}
+                recipientName="Entregador"
+                recipientAvatar="/drivers/driver-1.jpg"
             />
 
             {/* Rating Modal */}
@@ -364,26 +355,33 @@ export default function OrderTrackingPage() {
                 open={showRating}
                 onClose={() => setShowRating(false)}
                 onSubmit={handleRatingSubmit}
-                restaurantName={mockOrder.restaurant.name}
+                restaurantName={order.restaurant.name}
             />
 
             {/* Order Receipt */}
-            <OrderReceipt
-                open={showReceipt}
-                onClose={() => setShowReceipt(false)}
-                order={{
-                    id: orderId,
-                    createdAt: mockOrder.createdAt,
-                    restaurant: mockOrder.restaurant,
-                    items: mockOrder.items,
-                    deliveryAddress: mockOrder.deliveryAddress,
-                    paymentMethod: mockOrder.paymentMethod,
-                    subtotal: mockOrder.subtotal,
-                    deliveryFee: mockOrder.deliveryFee,
-                    discount: mockOrder.discount,
-                    total: mockOrder.total,
-                }}
-            />
+            {showReceipt && (
+                <OrderReceipt
+                    open={showReceipt}
+                    onClose={() => setShowReceipt(false)}
+                    order={{
+                        id: order.id,
+                        createdAt: order.created_at,
+                        restaurant: order.restaurant,
+                        items: order.items.map((i: any) => ({
+                            id: i.id,
+                            name: i.menu_item.name,
+                            quantity: i.quantity,
+                            price: i.unit_price,
+                        })),
+                        deliveryAddress: order.address,
+                        paymentMethod: order.payment_method,
+                        subtotal: order.subtotal,
+                        deliveryFee: order.delivery_fee,
+                        discount: order.discount,
+                        total: order.total,
+                    }}
+                />
+            )}
         </div>
     );
 }
