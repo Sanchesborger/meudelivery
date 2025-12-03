@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, MapPin, Star, Clock, DollarSign, MapPinned, Bike, LayoutGrid, ShoppingBag } from "lucide-react";
+import { Search, MapPin, Star, Clock, DollarSign, MapPinned, Bike, LayoutGrid, ShoppingBag, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { PromoCarousel } from "@/components/home/promo-carousel";
 import { useCart } from "@/hooks/use-cart";
+import { useGeolocation } from "@/hooks/use-geolocation";
 
 // Mock data for restaurants
 const mockRestaurants = [
@@ -150,6 +151,7 @@ export default function HomePage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("all");
     const { items } = useCart();
+    const { loading: locationLoading, error: locationError, address: userAddress, requestLocation } = useGeolocation();
 
     const featuredRestaurants = [...mockRestaurants]
         .sort((a, b) => b.rating - a.rating)
@@ -170,13 +172,31 @@ export default function HomePage() {
             <header className="bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 sticky top-0 z-50">
                 <div className="container mx-auto px-4 py-3">
                     <div className="flex items-center justify-between mb-3">
-                        {/* Address */}
-                        <div className="flex items-center gap-2">
+                        {/* Address with Geolocation */}
+                        <div className="flex items-center gap-2 flex-1">
                             <MapPin className="h-5 w-5 text-primary-600 flex-shrink-0" />
-                            <div>
+                            <div className="flex-1 min-w-0">
                                 <p className="text-xs text-neutral-600 dark:text-neutral-400">Entregar em</p>
-                                <p className="font-semibold text-sm">Rua Exemplo, 123</p>
+                                <p className="font-semibold text-sm truncate">
+                                    {userAddress || "Rua Exemplo, 123"}
+                                </p>
+                                {locationError && (
+                                    <p className="text-[10px] text-red-500 truncate">{locationError}</p>
+                                )}
                             </div>
+                            <button
+                                onClick={requestLocation}
+                                disabled={locationLoading}
+                                className="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors disabled:opacity-50 flex-shrink-0"
+                                aria-label="Obter localização atual"
+                                title="Obter localização atual"
+                            >
+                                {locationLoading ? (
+                                    <Loader2 className="h-4 w-4 animate-spin text-primary-600" />
+                                ) : (
+                                    <MapPinned className="h-4 w-4 text-primary-600" />
+                                )}
+                            </button>
                         </div>
 
                         {/* Cart Button */}

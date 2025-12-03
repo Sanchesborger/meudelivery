@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Home, Briefcase, MapPin } from "lucide-react";
+import { Home, Briefcase, MapPin, MapPinned, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Address } from "@/types";
+import { useGeolocation } from "@/hooks/use-geolocation";
 
 interface AddressFormProps {
     initialData?: Partial<Address>;
@@ -19,6 +20,8 @@ const addressTypes = [
 ] as const;
 
 export function AddressForm({ initialData, onSubmit, onCancel }: AddressFormProps) {
+    const { loading: locationLoading, error: locationError, address: detectedAddress, coordinates, requestLocation } = useGeolocation();
+
     const [formData, setFormData] = useState({
         label: initialData?.label || "",
         type: initialData?.type || "home" as const,
@@ -36,6 +39,49 @@ export function AddressForm({ initialData, onSubmit, onCancel }: AddressFormProp
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    // Auto-fill form when geolocation is obtained
+    const handleUseLocation = async () => {
+        await requestLocation();
+
+        // The coordinates and address will be updated via the hook
+        // We'll parse the detected address to fill the form
+        if (coordinates) {
+            setFormData(prev => ({
+                ...prev,
+                latitude: coordinates.latitude,
+                longitude: coordinates.longitude,
+            }));
+        }
+
+        // Parse detected address (format: "Street, Number - Neighborhood - City")
+        if (detectedAddress) {
+            const parts = detectedAddress.split(" - ");
+
+            if (parts.length >= 1) {
+                // First part might be "Street, Number" or just "Street" or just "City"
+                const firstPart = parts[0];
+                const streetParts = firstPart.split(", ");
+
+                if (streetParts.length >= 2) {
+                    setFormData(prev => ({ ...prev, street: streetParts[0], number: streetParts[1] }));
+                } else {
+                    setFormData(prev => ({ ...prev, street: firstPart }));
+                }
+            }
+
+            if (parts.length >= 2) {
+                setFormData(prev => ({ ...prev, neighborhood: parts[1] }));
+            }
+
+            if (parts.length >= 3) {
+                setFormData(prev => ({ ...prev, city: parts[2] }));
+            } else if (parts.length === 1) {
+                // If only one part, it's probably the city
+                setFormData(prev => ({ ...prev, city: parts[0] }));
+            }
+        }
+    };
 
     const handleZipCodeChange = (value: string) => {
         // Format: 00000-000
@@ -94,6 +140,34 @@ export function AddressForm({ initialData, onSubmit, onCancel }: AddressFormProp
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Use Current Location Button */}
+            <Button
+                type="button"
+                onClick={handleUseLocation}
+                disabled={locationLoading || isSubmitting}
+                variant="outline"
+                fullWidth
+                className="border-primary-600 text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20"
+            >
+                {locationLoading ? (
+                    <>
+                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                        Obtendo localização...
+                    </>
+                ) : (
+                    <>
+                        <MapPinned className="h-5 w-5 mr-2" />
+                        Usar minha localização atual
+                    </>
+                )}
+            </Button>
+
+            {locationError && (
+                <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                    <p className="text-sm text-red-600 dark:text-red-400">{locationError}</p>
+                </div>
+            )}
+
             {/* Address Type */}
             <div>
                 <label className="block text-sm font-medium mb-3">Tipo de endereço</label>
