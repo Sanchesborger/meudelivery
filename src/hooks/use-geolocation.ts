@@ -27,9 +27,9 @@ export function useGeolocation(): GeolocationResult {
     const reverseGeocode = async (latitude: number, longitude: number): Promise<string> => {
         try {
             // Using Nominatim API (OpenStreetMap) for reverse geocoding
-            // zoom=18 provides street-level detail instead of just city
+            // Removed zoom parameter to get the most accurate result based on coordinates
             const response = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1&accept-language=pt-BR`,
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1&accept-language=pt-BR`,
                 {
                     headers: {
                         'User-Agent': 'MeuDelivery/1.0' // Required by Nominatim usage policy
@@ -42,46 +42,75 @@ export function useGeolocation(): GeolocationResult {
             }
 
             const data = await response.json();
+            console.log("Geocoding result:", data); // Debug log
 
-            // Extract address components
+            // Extract address components with priority order
             const address = data.address;
-            const road = address.road || address.street || "";
+            
+            // Try multiple fields for street name
+            const road = address.road || 
+                        address.street || 
+                        address.pedestrian || 
+                        address.footway ||
+                        address.path || "";
+            
             const houseNumber = address.house_number || "";
-            const suburb = address.suburb || address.neighbourhood || address.quarter || "";
-            const city = address.city || address.town || address.village || address.municipality || "";
+            
+            // Try multiple fields for neighborhood
+            const suburb = address.suburb || 
+                          address.neighbourhood || 
+                          address.quarter || 
+                          address.residential ||
+                          address.district || "";
+            
+            // Try multiple fields for city
+            const city = address.city || 
+                        address.town || 
+                        address.village || 
+                        address.municipality ||
+                        address.county || "";
 
-            // Format the address with available components
-            const parts: string[] = [];
+            // Format the address with multiple components for better context
+            const addressParts: string[] = [];
 
-            // Add street and number
+            // Add street with number (primary info)
             if (road) {
                 if (houseNumber) {
-                    parts.push(`${road}, ${houseNumber}`);
+                    addressParts.push(`${road}, ${houseNumber}`);
                 } else {
-                    parts.push(road);
+                    addressParts.push(road);
                 }
             }
 
             // Add neighborhood if available and different from road
-            if (suburb && suburb !== road) {
-                parts.push(suburb);
+            if (suburb && suburb !== road && !road.includes(suburb)) {
+                addressParts.push(suburb);
             }
 
-            // Add city if we don't have more specific info, or always add it for context
-            if (city) {
-                // Only add city if we have street/suburb, otherwise it might be redundant
-                if (parts.length > 0) {
-                    parts.push(city);
-                } else {
-                    // If we only have city, that's what we show
-                    parts.push(city);
-                }
+            // Add city for context (but keep it short)
+            if (city && addressParts.length > 0) {
+                addressParts.push(city);
+            } else if (city && addressParts.length === 0) {
+                // If we only have city, show it
+                addressParts.push(city);
             }
 
-            // Join parts with " - " separator
-            const formattedAddress = parts.length > 0 ? parts.join(" - ") : "Localização atual";
+            // If we have nothing specific, try to extract from display_name
+            if (addressParts.length === 0 && data.display_name) {
+                const parts = data.display_name.split(',').map((p: string) => p.trim());
+                // Take first 2-3 meaningful parts
+                addressParts.push(...parts.slice(0, 3));
+            }
 
-            return formattedAddress;
+            // Join with " - " and limit total length
+            let formattedAddress = addressParts.join(" - ");
+            
+            // Limit to reasonable length (about 50 chars)
+            if (formattedAddress.length > 50) {
+                formattedAddress = addressParts.slice(0, 2).join(" - ");
+            }
+
+            return formattedAddress || "Localização atual";
         } catch (error) {
             console.error("Reverse geocoding error:", error);
             return "Localização atual";
@@ -104,8 +133,10 @@ export function useGeolocation(): GeolocationResult {
 
         navigator.geolocation.getCurrentPosition(
             async (position) => {
-                const { latitude, longitude } = position.coords;
+                const { latitude, longitude, accuracy } = position.coords;
                 const coordinates = { latitude, longitude };
+
+                console.log("Location obtained:", { latitude, longitude, accuracy }); // Debug log
 
                 // Get address from coordinates
                 const address = await reverseGeocode(latitude, longitude);
@@ -132,6 +163,8 @@ export function useGeolocation(): GeolocationResult {
                         break;
                 }
 
+                console.error("Geolocation error:", error); // Debug log
+
                 setState({
                     loading: false,
                     error: errorMessage,
@@ -140,9 +173,9 @@ export function useGeolocation(): GeolocationResult {
                 });
             },
             {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0,
+                enableHighAccuracy: true, // Use GPS if available
+                timeout: 15000, // Increased timeout to 15 seconds
+                maximumAge: 0, // Don't use cached position
             }
         );
     }, []);
