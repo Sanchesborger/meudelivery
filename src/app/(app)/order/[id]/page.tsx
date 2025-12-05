@@ -208,11 +208,9 @@ export default function OrderTrackingPage() {
                         <DriverCard driver={{
                             id: "driver-1",
                             name: "Carlos Silva",
-                            photo: "/drivers/driver-1.jpg",
                             rating: 4.8,
                             vehicle: "Moto Honda CG 160",
                             plate: "ABC-1234",
-                            location: { lat: -23.552, lng: -46.636 },
                         }} />
                         {/* Chat Button on Driver Card */}
                         <button
