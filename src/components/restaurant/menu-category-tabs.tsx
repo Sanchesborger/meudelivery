@@ -46,7 +46,7 @@ export function MenuCategoryTabs({
             <div
                 ref={scrollContainerRef}
                 onScroll={handleScroll}
-                className="flex gap-1 px-4 overflow-x-auto scrollbar-hide"
+                className="flex gap-1 px-4 py-2 overflow-x-auto scrollbar-hide"
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
                 {categories.map((category) => {
@@ -56,7 +56,7 @@ export function MenuCategoryTabs({
                             key={category.id}
                             onClick={() => onCategoryChange(category.id)}
                             className={cn(
-                                "flex items-center gap-2 px-4 py-3 whitespace-nowrap font-medium text-sm transition-all relative flex-shrink-0",
+                                "flex items-center gap-2 px-4 py-2.5 whitespace-nowrap font-medium text-sm transition-all relative flex-shrink-0",
                                 isActive
                                     ? "text-primary-600"
                                     : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Cup body -->
+  <path d="M150 200 L150 420 Q150 460 190 460 L322 460 Q362 460 362 420 L362 200 Z" 
+        fill="#3B82F6" stroke="#2563EB" stroke-width="8"/>
+  
+  <!-- Cup rim -->
+  <rect x="130" y="180" width="252" height="30" rx="8" 
+        fill="#60A5FA" stroke="#2563EB" stroke-width="4"/>
+  
+  <!-- Straw -->
+  <rect x="300" y="80" width="20" height="200" rx="10" 
+        fill="#F97316" stroke="#EA580C" stroke-width="4"/>
+  
+  <!-- Straw bend -->
+  <path d="M300 120 L280 100 L320 100 L300 120" 
+        fill="#F97316" stroke="#EA580C" stroke-width="4"/>
+  
+  <!-- Ice cubes -->
+  <rect x="180" y="240" width="40" height="40" rx="6" 
+        fill="#E0F2FE" opacity="0.7" stroke="#38BDF8" stroke-width="3"/>
+  <rect x="240" y="280" width="35" height="35" rx="6" 
+        fill="#E0F2FE" opacity="0.7" stroke="#38BDF8" stroke-width="3"/>
+  <rect x="290" y="250" width="38" height="38" rx="6" 
+        fill="#E0F2FE" opacity="0.7" stroke="#38BDF8" stroke-width="3"/>
+  
+  <!-- Bubbles -->
+  <circle cx="200" cy="350" r="12" fill="#DBEAFE" opacity="0.6"/>
+  <circle cx="260" cy="370" r="10" fill="#DBEAFE" opacity="0.6"/>
+  <circle cx="310" cy="340" r="14" fill="#DBEAFE" opacity="0.6"/>
+  <circle cx="230" cy="390" r="8" fill="#DBEAFE" opacity="0.6"/>
+</svg>

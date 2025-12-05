@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { Plus } from "lucide-react";
 import { Card } from "./card";
 import { Button } from "./button";
@@ -50,16 +49,11 @@ export function ProductCard({ product, onAdd, className }: ProductCardProps) {
                     )}
                 </div>
 
-                {product.image_url && (
-                    <div className="relative h-24 w-24 flex-shrink-0 rounded-lg overflow-hidden bg-neutral-200 dark:bg-neutral-800">
-                        <Image
-                            src={product.image_url}
-                            alt={product.name}
-                            fill
-                            className="object-cover"
-                        />
-                    </div>
-                )}
+                <div className="relative h-24 w-24 flex-shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
+                    <span className="text-2xl font-bold text-white opacity-80">
+                        {product.name.charAt(0)}
+                    </span>
+                </div>
             </div>
         </Card>
     );

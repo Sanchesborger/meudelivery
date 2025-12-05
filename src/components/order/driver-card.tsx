@@ -2,7 +2,6 @@
 
 import { MessageCircle, Phone, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
 
 interface DriverCardProps {
     driver: {
@@ -20,19 +19,10 @@ export function DriverCard({ driver }: DriverCardProps) {
         <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-4">
             <div className="flex items-center gap-4 mb-4">
                 {/* Driver Photo */}
-                <div className="relative h-16 w-16 rounded-full overflow-hidden bg-neutral-200 dark:bg-neutral-800 flex-shrink-0">
-                    {driver.photo ? (
-                        <Image
-                            src={driver.photo}
-                            alt={driver.name}
-                            fill
-                            className="object-cover"
-                        />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-primary-600 text-white text-2xl font-bold">
-                            {driver.name.charAt(0)}
-                        </div>
-                    )}
+                <div className="relative h-16 w-16 rounded-full overflow-hidden bg-gradient-to-br from-primary-500 to-primary-700 flex-shrink-0 flex items-center justify-center">
+                    <span className="text-white text-2xl font-bold">
+                        {driver.name.charAt(0)}
+                    </span>
                 </div>
 
                 {/* Driver Info */}

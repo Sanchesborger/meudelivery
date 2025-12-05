@@ -2,12 +2,10 @@
 
 import { useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
 import { Star, Clock, DollarSign, Heart, MapPin } from "lucide-react";
 import { Header } from "@/components/ui/header";
 import { Badge } from "@/components/ui/badge";
 import { ProductCard } from "@/components/ui/product-card";
-import { Button } from "@/components/ui/button";
 import { MenuCategoryTabs, MenuCategory } from "@/components/restaurant/menu-category-tabs";
 import { useCart } from "@/hooks/use-cart";
 import { formatCurrency } from "@/lib/utils";
@@ -75,27 +73,18 @@ export default function RestaurantPage() {
             />
 
             {/* Cover Image */}
-            <div className="relative h-48 w-full bg-neutral-200 dark:bg-neutral-800 -mt-16">
-                <Image
-                    src={mockRestaurant.cover_image}
-                    alt={mockRestaurant.name}
-                    fill
-                    className="object-cover"
-                    priority
-                />
+            <div className="relative h-48 w-full bg-gradient-to-br from-primary-400 to-primary-600 -mt-16">
+                {/* Placeholder gradient instead of loading image */}
             </div>
 
             {/* Restaurant Info */}
             <div className="container mx-auto px-4 -mt-8 relative z-10">
                 <div className="bg-white dark:bg-neutral-900 rounded-2xl p-6 shadow-xl space-y-4">
                     <div className="flex items-start gap-4">
-                        <div className="relative h-20 w-20 rounded-xl overflow-hidden bg-neutral-200 dark:bg-neutral-800 flex-shrink-0">
-                            <Image
-                                src={mockRestaurant.logo_image}
-                                alt={mockRestaurant.name}
-                                fill
-                                className="object-cover"
-                            />
+                        <div className="relative h-20 w-20 rounded-xl overflow-hidden bg-gradient-to-br from-primary-500 to-primary-700 flex-shrink-0 flex items-center justify-center">
+                            <span className="text-3xl font-bold text-white">
+                                {mockRestaurant.name.charAt(0)}
+                            </span>
                         </div>
                         <div className="flex-1">
                             <h1 className="text-2xl font-bold font-heading mb-1">

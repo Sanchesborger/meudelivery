@@ -123,8 +123,12 @@ export function ChatInterface({
                                             isUser ? "justify-end" : "justify-start"
                                         )}
                                     >
-                                        {!isUser && message.senderAvatar && (
-                                            <div className="w-8 h-8 rounded-full bg-neutral-200 dark:bg-neutral-800 flex-shrink-0" />
+                                        {!isUser && (
+                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex-shrink-0 flex items-center justify-center">
+                                                <span className="text-white text-xs font-bold">
+                                                    {message.senderName.charAt(0)}
+                                                </span>
+                                            </div>
                                         )}
                                         <div
                                             className={cn(
@@ -153,7 +157,11 @@ export function ChatInterface({
                             {/* Typing Indicator */}
                             {isTyping && (
                                 <div className="flex gap-2 items-center">
-                                    <div className="w-8 h-8 rounded-full bg-neutral-200 dark:bg-neutral-800 flex-shrink-0" />
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex-shrink-0 flex items-center justify-center">
+                                        <span className="text-white text-xs font-bold">
+                                            {recipientName.charAt(0)}
+                                        </span>
+                                    </div>
                                     <div className="bg-neutral-100 dark:bg-neutral-800 rounded-2xl rounded-bl-sm px-4 py-3">
                                         <div className="flex gap-1">
                                             <span className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce" />
