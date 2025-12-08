@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 export default function AuthLayout({
     children,
 }: {
-    children: React.Node;
+    children: ReactNode;
 }) {
     const router = useRouter();
     const supabase = createClientComponentClient();

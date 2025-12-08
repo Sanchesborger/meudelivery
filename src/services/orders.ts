@@ -1,5 +1,5 @@
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { CartItem } from "@/hooks/use-cart";
+import { CartItem } from "@/types";
 
 const supabase = createClientComponentClient();
 

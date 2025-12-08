@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { OTPInput } from "@/components/auth/otp-input";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
-export default function VerifyPage() {
+function VerifyContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const phone = searchParams.get("phone");
@@ -152,5 +152,13 @@ export default function VerifyPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function VerifyPage() {
+    return (
+        <Suspense fallback={<div>Carregando...</div>}>
+            <VerifyContent />
+        </Suspense>
     );
 }

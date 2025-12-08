@@ -212,7 +212,7 @@ export default function SettingsPage() {
 
             {/* Delete Confirmation Modal */}
             <Modal
-                isOpen={showDeleteConfirm}
+                open={showDeleteConfirm}
                 onClose={() => {
                     setShowDeleteConfirm(false);
                     setDeleteConfirmText("");
