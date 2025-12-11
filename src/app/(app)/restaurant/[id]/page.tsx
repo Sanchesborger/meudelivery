@@ -143,7 +143,8 @@ export default function RestaurantPage() {
                         <ProductCard
                             key={item.id}
                             product={item}
-                            onAdd={() => handleProductClick(item.id)}
+                            imagePosition="left"
+                            onClick={() => handleProductClick(item.id)}
                         />
                     ))}
                 </div>

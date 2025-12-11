@@ -9,15 +9,19 @@ import { MenuItem } from "@/types";
 interface ProductCardProps {
     product: MenuItem;
     onAdd?: (product: MenuItem) => void;
+    onClick?: () => void;
     className?: string;
+    imagePosition?: "left" | "right";
 }
 
-export function ProductCard({ product, onAdd, className }: ProductCardProps) {
+export function ProductCard({ product, onAdd, onClick, className, imagePosition = "right" }: ProductCardProps) {
     return (
         <Card
             variant="outlined"
             padding="none"
             className={cn("overflow-hidden", className)}
+            onClick={onClick}
+            hoverable={!!onClick}
         >
             <div className="flex gap-3 p-3">
                 <div className="flex-1 space-y-2">
@@ -49,7 +53,10 @@ export function ProductCard({ product, onAdd, className }: ProductCardProps) {
                     )}
                 </div>
 
-                <div className="relative h-24 w-24 flex-shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
+                <div className={cn(
+                    "relative h-24 w-24 flex-shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center",
+                    imagePosition === "left" && "order-first"
+                )}>
                     <span className="text-2xl font-bold text-white opacity-80">
                         {product.name.charAt(0)}
                     </span>

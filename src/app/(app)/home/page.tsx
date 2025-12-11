@@ -570,24 +570,25 @@ export default function HomePage() {
             gradient: "from-gray-500 to-gray-600"
         },
         {
-            id: "cupons",
-            label: "Cupons",
+            id: "promos",
+            label: "Promos",
             icon: (
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width={24} height={24}>
                     <defs>
                         <linearGradient id="ticket-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#FFD54F" />
-                            <stop offset="100%" stopColor="#FFA726" />
+                            <stop offset="0%" stopColor="#ef4444" />
+                            <stop offset="100%" stopColor="#dc2626" />
                         </linearGradient>
                     </defs>
                     <rect x="4" y="10" width="24" height="12" rx="2" fill="url(#ticket-grad)" />
                     <circle cx="4" cy="16" r="2" fill="#FFF" />
                     <circle cx="28" cy="16" r="2" fill="#FFF" />
                     <line x1="14" y1="10" x2="14" y2="22" stroke="#FFF" strokeWidth="1" strokeDasharray="2,2" opacity="0.5" />
-                    <rect x="8" y="14" width="4" height="4" rx="0.5" fill="#FFF" opacity="0.4" />
+                    <path d="M 17 14 L 19 18 L 17 20" stroke="#FFF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                    <path d="M 11 15 L 13 17" stroke="#FFF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
             ),
-            gradient: "from-yellow-500 to-orange-500"
+            gradient: "from-red-500 to-rose-600"
         },
         {
             id: "lanches",
@@ -887,7 +888,13 @@ export default function HomePage() {
                             return (
                                 <button
                                     key={chip.id}
-                                    onClick={() => setSelectedChip(chip.id)}
+                                    onClick={() => {
+                                        if (chip.id === 'promos') {
+                                            router.push('/promos');
+                                        } else {
+                                            setSelectedChip(chip.id);
+                                        }
+                                    }}
                                     className={`
                                         flex items-center gap-2.5 px-5 py-3.5 rounded-full
                                         font-medium text-sm whitespace-nowrap
