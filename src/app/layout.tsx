@@ -20,8 +20,13 @@ export const metadata: Metadata = {
   description: "Delivery de comida rápido e prático. Peça dos melhores restaurantes da sua região.",
   keywords: ["delivery", "comida", "restaurante", "pedido online"],
   authors: [{ name: "DeliveryX" }],
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
-  themeColor: "#ef4444",
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: '#ef4444',
 };
 
 export default function RootLayout({

@@ -119,8 +119,8 @@ const categories = [
                 </g>
             </svg>
         ),
-        bgColor: "bg-red-50",
-        borderColor: "border-red-100",
+        bgColor: "bg-rose-50/50",
+        borderColor: "border-transparent",
         iconBg: "bg-white",
         iconColor: "text-red-700"
     },
@@ -181,8 +181,8 @@ const categories = [
                 <path d="M 60 68 Q 58 71 60 73 L 62 73 Q 64 71 62 68 Z" fill="url(#cheese-gradient)" />
             </svg>
         ),
-        bgColor: "bg-orange-50",
-        borderColor: "border-orange-100",
+        bgColor: "bg-orange-50/50",
+        borderColor: "border-transparent",
         iconBg: "bg-white",
         iconColor: "text-orange-700"
     },
@@ -253,8 +253,8 @@ const categories = [
                 <path d="M 39.5 10 L 39.5 16 L 48 13 Z" fill="#FF5252" opacity="0.5" />
             </svg>
         ),
-        bgColor: "bg-yellow-50",
-        borderColor: "border-yellow-100",
+        bgColor: "bg-amber-50/50",
+        borderColor: "border-transparent",
         iconBg: "bg-white",
         iconColor: "text-yellow-700"
     },
@@ -317,8 +317,8 @@ const categories = [
                 <path d="M 59 57 Q 58 56 60 56 Q 62 56 61 57" fill="#FFC9CE" opacity="0.6" />
             </svg>
         ),
-        bgColor: "bg-red-50",
-        borderColor: "border-red-100",
+        bgColor: "bg-red-50/50",
+        borderColor: "border-transparent",
         iconBg: "bg-white",
         iconColor: "text-red-700"
     },
@@ -382,8 +382,8 @@ const categories = [
                 <rect x="42" y="38" width="3" height="1.5" rx="0.5" fill="#FF4081" transform="rotate(-60 43.5 38.75)" />
             </svg>
         ),
-        bgColor: "bg-pink-50",
-        borderColor: "border-pink-100",
+        bgColor: "bg-pink-50/50",
+        borderColor: "border-transparent",
         iconBg: "bg-white",
         iconColor: "text-pink-700"
     },
@@ -459,8 +459,8 @@ const categories = [
                 </g>
             </svg>
         ),
-        bgColor: "bg-green-50",
-        borderColor: "border-green-100",
+        bgColor: "bg-emerald-50/50",
+        borderColor: "border-transparent",
         iconBg: "bg-white",
         iconColor: "text-green-700"
     },
@@ -525,8 +525,8 @@ const categories = [
                 <circle cx="59" cy="60" r="1.2" fill="#FFF" opacity="0.5" />
             </svg>
         ),
-        bgColor: "bg-blue-50",
-        borderColor: "border-blue-100",
+        bgColor: "bg-sky-50/50",
+        borderColor: "border-transparent",
         iconBg: "bg-white",
         iconColor: "text-blue-700"
     },
@@ -534,8 +534,8 @@ const categories = [
         id: "all",
         name: "Todos",
         icon: <LayoutGrid className="w-8 h-8 text-neutral-600" />,
-        bgColor: "bg-gray-50",
-        borderColor: "border-gray-100",
+        bgColor: "bg-neutral-50/50",
+        borderColor: "border-transparent",
         iconBg: "bg-white",
         iconColor: "text-gray-700"
     },
@@ -810,23 +810,14 @@ export default function HomePage() {
                                 <button
                                     key={category.id}
                                     onClick={() => setSelectedCategory(category.id)}
-                                    className={`flex flex-col items-center gap-2 p-2 rounded-xl border transition-all ${isActive
-                                        ? "bg-primary-50 border-primary-200 dark:bg-primary-900/20 dark:border-primary-800"
-                                        : `${category.bgColor} ${category.borderColor} hover:brightness-95 dark:bg-neutral-900 dark:border-neutral-800`
+                                    className={`aspect-square flex items-center justify-center p-4 rounded-2xl transition-all duration-300 ${isActive
+                                        ? "bg-gradient-to-br from-primary-500 to-primary-600 shadow-lg shadow-primary-500/30 scale-105"
+                                        : `${category.bgColor} hover:scale-105 hover:shadow-md`
                                         }`}
                                 >
-                                    <div className={`p-2.5 rounded-xl ${isActive
-                                        ? "bg-primary-100 text-primary-600 dark:bg-primary-900 dark:text-primary-400"
-                                        : "bg-white text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400 shadow-sm"
-                                        }`}>
+                                    <div className={`transition-transform duration-300 ${isActive ? 'scale-110' : ''}`}>
                                         {category.icon}
                                     </div>
-                                    <span className={`text-[10px] font-medium truncate w-full text-center ${isActive
-                                        ? "text-primary-700 dark:text-primary-300"
-                                        : "text-neutral-600 dark:text-neutral-400"
-                                        }`}>
-                                        {category.name}
-                                    </span>
                                 </button>
                             );
                         })}
@@ -891,6 +882,8 @@ export default function HomePage() {
                                     onClick={() => {
                                         if (chip.id === 'promos') {
                                             router.push('/promos');
+                                        } else if (chip.id === 'lanches') {
+                                            router.push('/lanches');
                                         } else {
                                             setSelectedChip(chip.id);
                                         }
